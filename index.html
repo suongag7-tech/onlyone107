@@ -250,7 +250,7 @@
   <!-- modal -->
   <div class="modal" id="modal">
     <div class="modal-card" id="modalCard">
-      <h3 id="modalTitle">Hãy viết 1 mong muốn của chị bé</h3>
+      <h3 id="modalTitle">Viết 1 mong muốn của chị bé</h3>
       <div id="modalBody"></div>
     </div>
   </div>
@@ -368,7 +368,58 @@ function openCustomModal(){
   area.placeholder='Viết điều bạn ước...';
   area.style.width='100%'; area.style.height='110px'; area.style.padding='10px';
   area.style.borderRadius='10px'; area.style.border='1px solid #f0e9fb'; area.style.fontSize='15px';
-  area.vaHi'; clear.style.width='auto'; clear.style.padding='6px 8px';
+  area.value=savedCustom||'';
+  const row=document.createElement('div');
+  row.style.display='flex';row.style.gap='10px';row.style.justifyContent='flex-end';row.style.marginTop='10px';
+  const cancel=document.createElement('button');
+  cancel.className='icon-btn'; cancel.textContent='Hủy'; cancel.style.width='auto'; cancel.style.padding='8px 10px';
+  const save=document.createElement('button');
+  save.className='icon-btn'; save.textContent='Lưu & Rút';
+  save.style.width='auto'; save.style.padding='8px 10px';
+  save.style.background='linear-gradient(180deg,var(--accent),#c97ff2)'; save.style.color='#fff';
+  row.appendChild(cancel); row.appendChild(save);
+  modalBody.appendChild(area); modalBody.appendChild(row);
+  modal.classList.add('show'); setTimeout(()=>area.focus(),200);
+  cancel.addEventListener('click',()=>{ modal.classList.remove('show'); btn.disabled=false; });
+  save.addEventListener('click',()=>{
+    const text=area.value.trim();
+    if(!text){ alert('Vui lòng viết ít nhất 1 ký tự.'); area.focus(); return; }
+    localStorage.setItem(SAVED_KEY,text); savedCustom=text;
+    addToHistory(text,'custom');
+    modal.classList.remove('show');
+    dispenseCustom(text);
+  });
+}
+
+function dispenseCustom(text){
+  if(currentNote){ currentNote.remove(); currentNote=null; }
+  btn.disabled=true;
+  flashSlot(); playTing();
+  const el=makeNoteEl(text);
+  shelf.appendChild(el);
+  el.style.top='100%'; el.classList.add('floating');
+  currentNote=el;
+  dispensed++; updateCount();
+  btn.innerText='Bắt đầu lại'; btn.disabled=false;
+  btn.onclick=()=>resetMachine();
+}
+
+function resetMachine(){
+  if(!confirm('Đặt lại?')) return;
+  dispensed=0; updateCount(); shelf.querySelectorAll('.note').forEach(n=>n.remove());
+  currentNote=null;
+  btn.innerText='🌟'; btn.onclick=()=>dispense();
+}
+
+function openHistory(){
+  modalBody.innerHTML='';
+  const header=document.createElement('div');
+  header.style.display='flex';header.style.justifyContent='space-between';
+  header.style.alignItems='center';header.style.marginBottom='8px';
+  const hTitle=document.createElement('div');
+  hTitle.innerText=`Lịch sử (${history.length})`; hTitle.style.fontWeight='700';
+  const clear=document.createElement('button');
+  clear.className='icon-btn'; clear.textContent='Xoá'; clear.style.width='auto'; clear.style.padding='6px 8px';
   header.appendChild(hTitle); header.appendChild(clear);
   modalBody.appendChild(header);
   const list=document.createElement('div'); list.className='history-list';
@@ -380,7 +431,7 @@ function openCustomModal(){
     list.appendChild(row);
   });
   modalBody.appendChild(list); modal.classList.add('show');
-  clear.addEventListener('click',()=>{ if(confirm('Lịch sử?')){ history=[]; localStorage.removeItem(HISTORY_KEY); modal.classList.remove('show'); } });
+  clear.addEventListener('click',()=>{ if(confirm('Xóa toàn bộ lịch sử?')){ history=[]; localStorage.removeItem(HISTORY_KEY); modal.classList.remove('show'); } });
 }
 
 historyBtn.onclick=openHistory;
